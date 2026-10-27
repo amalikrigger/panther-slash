@@ -37,10 +37,9 @@ All sound effects are synthesized live with the Web Audio API in
 |---|---|---|
 | *(none yet)* | | |
 
-## Legacy files (to be removed)
+## Removed legacy files
 
-The files the project started from (`assets/fruits/`, `assets/sound/`,
-`bg.jpg`, `gametitle.png`, and the other old PNGs, plus the old minified
-scripts) came from an HTML5 port of Halfbrick's *Fruit Ninja*. They are **not
-used** by Panther Slash and are not licensed for our use. They are scheduled
-for deletion.
+The project started from an HTML5 port of Halfbrick's *Fruit Ninja*
+(minified scripts, fruit sprites, sounds and UI images). Those files were not
+licensed for our use. They were never used by Panther Slash and were deleted
+on Oct 27, 2026. They still exist in this repo's early git history.

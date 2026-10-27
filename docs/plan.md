@@ -80,11 +80,10 @@ thinkinbits.site, school logo once permission is confirmed.
 - [x] Phase 0: orientation and plan
 - [x] Phase 1: built and verified Oct 27 (headless Chrome at 1280×800, 1024×768
   touch, 844×390 touch, 390×844 touch; rotation mid-round; 4× CPU throttle
-  holds 60 fps; `node --test` 16/16). **Waiting on Amali:** checkpoint review,
-  commit approval, and approval to delete the legacy Fruit Ninja files.
+  holds 60 fps; `node --test` 16/16).
 - [x] Phase 2: built and verified Oct 27 on branch `boo-bash-rebuild` (25-step
   booth-flow script passes at 390×844, 844×390 and 1280×800 touch; prize
   screen fits without scrolling down to 375×667; `node --test` 33/33).
-  **Waiting on Amali:** checkpoint review, commits, legacy-file deletion.
+  Committed on `boo-bash-rebuild` (not pushed); legacy Fruit Ninja files deleted.
 - [ ] Phase 3: next (juice, title attract mode, service worker for offline,
   accessibility pass, low-end tuning)
