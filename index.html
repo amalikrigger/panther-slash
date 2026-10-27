@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<style type="text/css">
+body,html {height:100%;margin:0;padding:0;background-color:#000;}
+#bottom{background-image: url(assets/bg.jpg);}
+#info a{color: #666666;}
+#info{display:block;position: absolute;left: 0px;top: 0px;width: 750px;height: 500px;color:#555555;font-size:13px;}
+#loading{position:absolute;z-index:0;left:320px;top:234px;width:161px;height:51px;background-image: url(assets/loading.png);}
+.canvas{display:none;position: absolute;z-index:0;left:0px;top:0px;width:750px;height:500px;}
+#moreGames{position:absolute;top:203px;left:0px;}
+#moreGamesButton{position:absolute;left:300px;border:none;}
+a{text-decoration:none;}
+</style>
+<title>Fruit Ninja Halloween</title>
+<script src="assets/preloadjs-0.6.0.min.js"></script>
+<script src="assets/soundjs-0.6.0.min.js"></script>
+<script src="assets/TweenLite.min.js"></script>
+<script src="assets/EasePack.min.js"></script>
+<script src="assets/spp.min.js"></script>
+<script src="assets/utils.js"></script>
+<script src="assets/Assets.js"></script>
+<script src="assets/Module_fruit.js"></script>
+<script src="assets/Module_bomb.js"></script>
+<script src="assets/Module_collide.js"></script>
+<script src="assets/Module_blade.js"></script>
+<script src="assets/Main.js"></script>
+</head>
+<body>
+<canvas class="canvas" id="bottom" style="display: block;" width="750" height="500"></canvas>
+<canvas class="canvas" id="middle" style="display: block;" width="750" height="500"></canvas>
+<canvas class="canvas" id="top" style="display: block;" width="750" height="500"></canvas>
+<div id="loading" style="display: block;"></div>
+<div id="moreGames"></div>
+</body>
+</html>
