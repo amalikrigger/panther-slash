@@ -8,7 +8,12 @@
 
 import { segmentHitsCircle, randomBetween, pickWeighted, clamp, lerp } from './geometry.js';
 
-/** @typedef {'classic' | 'challenge'} GameMode */
+/**
+ * classic:   3 lives, a bomb ends the game
+ * challenge: timed round, bombs cost points, Panther Frenzy at the end
+ * attract:   harmless enemies on the title screen; nothing is scored or lost
+ * @typedef {'classic' | 'challenge' | 'attract'} GameMode
+ */
 
 export class Game {
   /**
@@ -31,6 +36,8 @@ export class Game {
 
     this.entities = []; // everything currently flying
     this.nextThrowIn = rules.spawn.firstThrowDelay;
+    this.slowTimeLeft = 0; // seconds of Frost Orb slow-down left
+    this.frenzyStarted = false;
 
     // Combo tracking: slices close together in time form a combo.
     this.comboCount = 0;
@@ -58,10 +65,16 @@ export class Game {
       return this.events;
     }
 
+    // The Frost Orb slows the world (throws and movement) but not the round
+    // timer, so a frozen moment is a real advantage.
+    const worldDt = this.slowTimeLeft > 0 ? dt * this.rules.frostOrb.slowFactor : dt;
+    this.slowTimeLeft = Math.max(0, this.slowTimeLeft - dt);
+
     this.elapsed += dt;
     this.updateTimer(dt);
-    this.updateSpawning(dt, bounds);
-    this.moveEntities(dt);
+    this.updateFrenzy();
+    this.updateSpawning(worldDt, bounds);
+    this.moveEntities(worldDt);
     if (!this.isOver) this.checkSlices(bladeSegments);
     this.removeFallen(bounds);
     this.updateCombo(dt);
@@ -74,13 +87,26 @@ export class Game {
     if (this.timeLeft === 0) this.end('time');
   }
 
+  /** Is it the end-of-round Panther Frenzy right now? */
+  get inFrenzy() {
+    return this.mode === 'challenge' && !this.isOver && this.timeLeft <= this.rules.frenzy.lastSeconds;
+  }
+
+  updateFrenzy() {
+    if (this.frenzyStarted || !this.inFrenzy) return;
+    this.frenzyStarted = true;
+    this.events.push({ type: 'frenzy' });
+  }
+
   updateSpawning(dt, bounds) {
     if (this.isOver) return;
     this.nextThrowIn -= dt;
     if (this.nextThrowIn > 0) return;
 
     const spawn = this.rules.spawn;
-    this.nextThrowIn = Math.max(spawn.minInterval, spawn.startInterval - spawn.intervalShrink * this.elapsed);
+    let interval = Math.max(spawn.minInterval, spawn.startInterval - spawn.intervalShrink * this.elapsed);
+    if (this.inFrenzy) interval *= this.rules.frenzy.intervalFactor;
+    this.nextThrowIn = interval;
     this.throwVolley(bounds);
   }
 
@@ -93,7 +119,8 @@ export class Game {
     const spawn = this.rules.spawn;
     const maxCount = Math.round(lerp(spawn.maxPerThrow, spawn.maxPerThrowLate, this.progress));
     const count = Math.floor(randomBetween(spawn.minPerThrow, maxCount + 1, this.random));
-    const bombChance = lerp(spawn.bombChanceStart, spawn.bombChanceLate, this.progress);
+    const bombsAllowed = this.mode !== 'attract' && !(this.inFrenzy && !this.rules.frenzy.bombs);
+    const bombChance = bombsAllowed ? lerp(spawn.bombChanceStart, spawn.bombChanceLate, this.progress) : 0;
 
     for (let i = 0; i < count; i++) {
       // Never make the very first thing of a volley a bomb, so every throw
@@ -101,8 +128,10 @@ export class Game {
       const isBomb = i > 0 && this.random() < bombChance;
       this.launch(isBomb ? this.makeBomb() : this.makeEnemy(), bounds);
     }
-    if (this.random() < this.rules.goldenPanther.chancePerThrow) {
-      this.launch(this.makePanther(), bounds);
+    // Bonus targets: not in attract mode, where nothing counts.
+    if (this.mode !== 'attract') {
+      if (this.random() < this.rules.goldenPanther.chancePerThrow) this.launch(this.makePanther(), bounds);
+      if (this.random() < this.rules.frostOrb.chancePerThrow) this.launch(this.makeFrostOrb(), bounds);
     }
     this.events.push({ type: 'throw', count });
   }
@@ -120,6 +149,11 @@ export class Game {
   makePanther() {
     const panther = this.rules.goldenPanther;
     return { kind: 'panther', type: { id: 'panther', ...panther }, radius: panther.radius, points: panther.points };
+  }
+
+  makeFrostOrb() {
+    const orb = this.rules.frostOrb;
+    return { kind: 'frost', type: { id: 'frost', ...orb }, radius: orb.radius, points: orb.points };
   }
 
   /**
@@ -209,6 +243,10 @@ export class Game {
     this.stats.sliced++;
     if (critical) this.stats.criticals++;
     if (entity.kind === 'panther') this.stats.panthers++;
+    if (entity.kind === 'frost') {
+      this.slowTimeLeft = this.rules.frostOrb.seconds;
+      this.events.push({ type: 'frost', entity, seconds: this.rules.frostOrb.seconds });
+    }
 
     this.comboCount++;
     this.comboTimer = this.rules.scoring.comboWindow;

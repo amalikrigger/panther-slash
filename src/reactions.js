@@ -12,7 +12,8 @@ export function reactToEvents(events, { game, effects, renderer, viewport, lastS
   for (const event of events) {
     switch (event.type) {
       case 'throw':
-        sounds.throw();
+        // Quiet on the title screen, so the booth isn't whooshing all night.
+        if (game.mode !== 'attract') sounds.throw();
         break;
 
       case 'slice': {
@@ -26,15 +27,33 @@ export function reactToEvents(events, { game, effects, renderer, viewport, lastS
           effects.flash(THEME.gold, 0.3);
           effects.popup('GOLDEN PANTHER!', entity.x, entity.y - 50, { color: THEME.gold, size: 40, life: 1.4, font: THEME.displayFont });
         }
-        if (critical) {
+        if (critical && game.mode !== 'attract') {
           sounds.critical();
           effects.popup('CRITICAL!', entity.x, entity.y - 40, { color: '#ff9cf0', size: 30 });
         }
-        effects.popup(`+${points}`, entity.x, entity.y, { color: critical ? '#ff9cf0' : '#fff' });
+        if (game.mode !== 'attract') effects.popup(`+${points}`, entity.x, entity.y, { color: critical ? '#ff9cf0' : '#fff' });
         break;
       }
 
+      case 'frost':
+        sounds.frost();
+        effects.flash('#9fe8ff', 0.3);
+        effects.popup('FREEZE!', event.entity.x, event.entity.y - 60, { color: '#bff0ff', size: 46, life: 1.3, font: THEME.displayFont });
+        break;
+
+      case 'frenzy':
+        sounds.frenzy();
+        effects.flash(THEME.gold, 0.25);
+        effects.popup('PANTHER FRENZY!', viewport.worldWidth / 2, viewport.worldHeight * 0.32, {
+          color: THEME.gold,
+          size: 64,
+          life: 2,
+          font: THEME.displayFont,
+        });
+        break;
+
       case 'combo':
+        if (game.mode === 'attract') break;
         effects.popup(`${event.count}× COMBO!`, lastSlice.x, lastSlice.y - 70, { color: THEME.gold, size: 44, life: 1.2, font: THEME.displayFont });
         effects.popup(`+${event.bonus}`, lastSlice.x, lastSlice.y - 30, { color: THEME.gold, size: 30, life: 1.2 });
         effects.shake(0.15, 6);

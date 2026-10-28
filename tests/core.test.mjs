@@ -33,6 +33,8 @@ function makeRules(overrides = {}) {
     enemies: [enemyType],
     bomb: { radius: 40, classicEndsGame: true, challengePenalty: 50 },
     goldenPanther: { radius: 50, points: 100, chancePerThrow: 0 },
+    frostOrb: { radius: 42, points: 10, chancePerThrow: 0, seconds: 4, slowFactor: 0.5 },
+    frenzy: { lastSeconds: 10, intervalFactor: 0.5, bombs: false },
     lives: 3,
     roundSeconds: 60,
     ...overrides,
@@ -207,4 +209,57 @@ test('the first thing in every volley is never a bomb', () => {
   const game = new Game({ mode: 'challenge', rules, random: seeded(3) });
   game.update(0.001, [], BOUNDS);
   assert.equal(game.entities[0].kind, 'enemy');
+});
+
+// --- Panther Frenzy, Frost Orb, attract mode ----------------------------------------
+
+test('Panther Frenzy starts once when 10 seconds are left, and throws no bombs', () => {
+  const rules = makeRules();
+  rules.spawn = { ...rules.spawn, firstThrowDelay: 0, bombChanceStart: 1, bombChanceLate: 1 };
+  const game = new Game({ mode: 'challenge', rules: { ...rules, roundSeconds: 12 }, random: seeded(5) });
+  let frenzies = 0;
+  let bombsDuringFrenzy = 0;
+  for (let i = 0; i < 230 && !game.isOver; i++) {
+    const before = game.entities.length;
+    frenzies += game.update(0.05, [], BOUNDS).filter((e) => e.type === 'frenzy').length;
+    if (game.inFrenzy) bombsDuringFrenzy += game.entities.slice(before).filter((e) => e.kind === 'bomb').length;
+  }
+  assert.equal(frenzies, 1);
+  assert.equal(bombsDuringFrenzy, 0);
+});
+
+test('Classic mode never has a frenzy', () => {
+  const game = new Game({ mode: 'classic', rules: makeRules({ roundSeconds: 1 }), random: seeded() });
+  const events = [];
+  for (let i = 0; i < 100; i++) events.push(...game.update(0.05, [], BOUNDS));
+  assert.ok(!events.some((e) => e.type === 'frenzy'));
+});
+
+test('slicing a Frost Orb slows enemies but not the round timer', () => {
+  const game = new Game({ mode: 'challenge', rules: makeRules({ gravity: 0 }), random: seeded() });
+  const orb = place(game, 'enemy', 100, 300);
+  orb.kind = 'frost';
+  const enemy = place(game, 'enemy', 500, 100);
+  enemy.vx = 100;
+  game.update(0.001, swipeThrough(100, 300), BOUNDS);
+  const x0 = enemy.x;
+  const t0 = game.timeLeft;
+  game.update(1, [], BOUNDS);
+  assert.equal(Math.round(enemy.x - x0), 50); // half speed (slowFactor 0.5)
+  assert.equal(Math.round((t0 - game.timeLeft) * 1000), 1000); // timer at full speed
+});
+
+test('attract mode never throws bombs or bonus targets, and misses cost nothing', () => {
+  const rules = makeRules();
+  rules.spawn = { ...rules.spawn, firstThrowDelay: 0, bombChanceStart: 1, bombChanceLate: 1 };
+  rules.goldenPanther = { ...rules.goldenPanther, chancePerThrow: 1 };
+  rules.frostOrb = { ...rules.frostOrb, chancePerThrow: 1 };
+  const game = new Game({ mode: 'attract', rules, random: seeded(9) });
+  const kinds = new Set();
+  for (let i = 0; i < 400; i++) {
+    game.update(0.05, [], BOUNDS);
+    for (const e of game.entities) kinds.add(e.kind);
+  }
+  assert.deepEqual([...kinds], ['enemy']);
+  assert.equal(game.isOver, false);
 });

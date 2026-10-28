@@ -20,7 +20,7 @@ of this project's own code and carry no third-party license.
 
 | What | Where |
 |---|---|
-| Pumpkin, ghost, bat, candy corn, eyeball, Golden Panther medallion, skull bomb | `src/render/art.js` |
+| Pumpkin, ghost, bat, candy corn, eyeball, Golden Panther medallion, Frost Orb, skull bomb | `src/render/art.js` |
 | Night sky, harvest moon, haunted house, trees, gravestones, spiderweb | `src/render/background.js` |
 | Claw trail, juice, splats, sparks | `src/render/renderer.js`, `src/render/effects.js` |
 | HUD paw icons, button icons | inline SVG in `index.html` and `src/ui/hud.js` |

@@ -34,6 +34,10 @@ No Python? In VS Code, install the "Live Server" extension and click
 - **Combos:** slice 3 or more in one quick swipe for bonus points.
 - **Critical slices** randomly score double.
 - **The Golden Panther** is rare and worth 100 points. Don't let it get away!
+- **The Frost Orb** (a snowflake ball) slows everything down for 4 seconds,
+  but the clock keeps ticking.
+- **PANTHER FRENZY!** In the last 10 seconds of a Challenge round, enemies
+  come twice as fast and there are no bombs. Go wild!
 
 ## What's in the folder
 
@@ -70,6 +74,10 @@ docs/                 plan, booth guide, student tasks, proposals
 Open **`src/config.js`**. Every setting has a comment. Try changing the
 `gravity`, how often bombs appear, the points per enemy, or the round length.
 Save the file and reload the browser.
+
+The game also works **offline**: on a real website it saves itself after the
+first visit (see `sw.js`). That's switched off on `localhost`, so your changes
+always show up when you refresh.
 
 Tip: add `?debug` to the address (`http://localhost:8000/?debug`), open
 the browser console (F12), and type `pantherSlash.game` while playing to look

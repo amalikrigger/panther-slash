@@ -36,8 +36,9 @@ which one you're taking, and follow the git workflow in the README.
 
 ## Code
 
-- ⭐⭐ **Add a "freeze" power-up**: a frozen pumpkin that slows everything for
-  3 seconds when sliced.
+- ⭐⭐ **Add a new power-up.** Copy how the Frost Orb works (`FROST_ORB` in
+  `config.js`, `makeFrostOrb` in `core/game.js`). Ideas: a "double points"
+  candy, or a magnet that pulls enemies to the middle.
 - ⭐⭐ **Show a "Perfect!" message** when a round ends with zero misses.
 - ⭐⭐⭐ **Write a new test** in `tests/core.test.mjs` for something you
   changed. Check that it fails when the code is wrong!

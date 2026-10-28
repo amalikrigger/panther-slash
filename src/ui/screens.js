@@ -28,23 +28,19 @@ export const currentScreen = () => current;
 
 /**
  * Call `handler(action, button)` whenever a button with data-action="..."
- * is pressed. We react on pointerdown (not click) so a fast swipe that starts
- * on a button still counts, and the game feels snappy.
+ * is pressed.
+ *
+ * We use "click", which fires only when a finger lifts on the same button it
+ * pressed. A swipe that starts on a button and slides away (a kid slicing at
+ * the enemies on the title screen) doesn't count, so nobody starts a round by
+ * accident. Click also covers Enter and Space for keyboard users.
  */
 export function onAction(handler) {
-  const fire = (event) => {
+  document.addEventListener('click', (event) => {
     const button = event.target.closest('[data-action]');
     if (!button || button.disabled) return;
     event.preventDefault();
     handler(button.dataset.action, button);
-  };
-  document.addEventListener('pointerdown', (event) => {
-    if (event.button !== 0) return;
-    fire(event);
-  });
-  // Keyboard users press Enter or Space, which fires "click" with no pointer.
-  document.addEventListener('click', (event) => {
-    if (event.detail === 0) fire(event);
   });
 }
 

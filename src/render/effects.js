@@ -20,6 +20,14 @@ export class Effects {
     this.shakeStrength = 0;
     this.flashTime = 0;
     this.flashColor = '#fff';
+    this.maxParticles = EFFECTS.maxParticles;
+    this.juicePerSlice = EFFECTS.juicePerSlice;
+  }
+
+  /** Slow device: fewer particles. */
+  setLowQuality() {
+    this.maxParticles = Math.round(EFFECTS.maxParticles / 2);
+    this.juicePerSlice = Math.round(EFFECTS.juicePerSlice / 2);
   }
 
   clear() {
@@ -57,7 +65,7 @@ export class Effects {
     // Cap the pieces too, in case someone slices a huge pile at once.
     if (this.halves.length > 40) this.halves.splice(0, this.halves.length - 40);
 
-    const drops = prefersReducedMotion() ? 4 : EFFECTS.juicePerSlice;
+    const drops = prefersReducedMotion() ? 4 : this.juicePerSlice;
     for (let i = 0; i < drops; i++) {
       const speed = 120 + Math.random() * 380;
       const spread = angle + (Math.random() - 0.5) * 1.6 + (Math.random() < 0.5 ? 0 : Math.PI);
@@ -125,7 +133,7 @@ export class Effects {
   addParticle(p) {
     // Hard cap: on a slow tablet, too many particles is the first thing to
     // make the game stutter.
-    if (this.particles.length >= EFFECTS.maxParticles) this.particles.shift();
+    if (this.particles.length >= this.maxParticles) this.particles.shift();
     p.maxLife = p.life;
     this.particles.push(p);
   }

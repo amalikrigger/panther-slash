@@ -22,12 +22,19 @@ export class Viewport {
     this.scale = 1; // CSS pixels per world unit
     this.bounds = { left: 0, top: 0, right: WORLD.safeWidth, bottom: WORLD.safeHeight };
     this.listeners = [];
+    this.maxPixelRatio = MAX_PIXEL_RATIO;
 
     const onResize = () => this.resize();
     window.addEventListener('resize', onResize);
     window.addEventListener('orientationchange', onResize);
     // Mobile browsers change the visible size when the address bar hides.
     window.visualViewport?.addEventListener('resize', onResize);
+    this.resize();
+  }
+
+  /** Used on slow devices: draw fewer pixels. */
+  setMaxPixelRatio(ratio) {
+    this.maxPixelRatio = ratio;
     this.resize();
   }
 
@@ -39,7 +46,7 @@ export class Viewport {
     const rect = this.canvas.getBoundingClientRect();
     const width = Math.max(1, Math.round(rect.width));
     const height = Math.max(1, Math.round(rect.height));
-    const pixelRatio = Math.min(window.devicePixelRatio || 1, MAX_PIXEL_RATIO);
+    const pixelRatio = Math.min(window.devicePixelRatio || 1, this.maxPixelRatio);
     if (width === this.cssWidth && height === this.cssHeight && pixelRatio === this.pixelRatio) return;
 
     this.cssWidth = width;

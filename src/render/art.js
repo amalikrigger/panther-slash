@@ -325,14 +325,19 @@ function drawPanther(ctx) {
 
   // Panther head silhouette in maroon.
   ctx.fillStyle = '#701114';
-  ctx.beginPath();
-  // Ears.
+  // Ears: short and rounded, like a big cat's (pointy ones look like a house cat).
   for (const side of [-1, 1]) {
-    ctx.moveTo(side * R * 0.28, -R * 0.42);
-    ctx.lineTo(side * R * 0.52, -R * 0.66);
-    ctx.lineTo(side * R * 0.58, -R * 0.24);
+    ctx.beginPath();
+    ctx.arc(side * R * 0.4, -R * 0.4, R * 0.17, 0, Math.PI * 2);
+    ctx.fill();
   }
-  ctx.fill();
+  ctx.fillStyle = '#c4474c';
+  for (const side of [-1, 1]) {
+    ctx.beginPath();
+    ctx.arc(side * R * 0.4, -R * 0.4, R * 0.08, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.fillStyle = '#701114';
   ctx.beginPath();
   ctx.moveTo(0, -R * 0.5);
   ctx.bezierCurveTo(R * 0.55, -R * 0.52, R * 0.66, -R * 0.1, R * 0.5, R * 0.2);
@@ -379,6 +384,48 @@ function drawPanther(ctx) {
       ctx.stroke();
     }
   }
+}
+
+/** The Frost Orb power-up: an icy ball with a big snowflake. */
+function drawFrost(ctx) {
+  const ice = ctx.createRadialGradient(-R * 0.3, -R * 0.35, 6, 0, 0, R * 0.9);
+  ice.addColorStop(0, '#ffffff');
+  ice.addColorStop(0.45, '#9fe8ff');
+  ice.addColorStop(1, '#2b7bd6');
+  ctx.fillStyle = ice;
+  ctx.beginPath();
+  ctx.arc(0, 0, R * 0.88, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.lineWidth = 7;
+  ctx.strokeStyle = '#0d2a5c';
+  ctx.stroke();
+
+  // Six-armed snowflake.
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineCap = 'round';
+  for (let arm = 0; arm < 6; arm++) {
+    ctx.save();
+    ctx.rotate((arm / 6) * Math.PI * 2);
+    ctx.lineWidth = 9;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(0, -R * 0.66);
+    ctx.stroke();
+    ctx.lineWidth = 6;
+    for (const along of [0.32, 0.5]) {
+      ctx.beginPath();
+      ctx.moveTo(-R * 0.14, -R * (along + 0.1));
+      ctx.lineTo(0, -R * along);
+      ctx.lineTo(R * 0.14, -R * (along + 0.1));
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  // Shine.
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+  ctx.beginPath();
+  ctx.ellipse(-R * 0.42, -R * 0.45, R * 0.16, R * 0.08, -0.7, 0, Math.PI * 2);
+  ctx.fill();
 }
 
 /**
@@ -441,6 +488,7 @@ const DRAWINGS = {
   candy: drawCandyCorn,
   eyeball: drawEyeball,
   panther: drawPanther,
+  frost: drawFrost,
   bomb: drawBomb,
 };
 

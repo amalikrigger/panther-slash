@@ -21,7 +21,7 @@
 //
 // Buttons in index.html have data-action="..." and are handled in onButton().
 
-import { WORLD, SPAWN, SCORING, ENEMIES, BOMB, GOLDEN_PANTHER, MODES, EFFECTS, STAFF } from './config.js';
+import { WORLD, SPAWN, SCORING, ENEMIES, BOMB, GOLDEN_PANTHER, FROST_ORB, FRENZY, ATTRACT, MODES, EFFECTS, STAFF } from './config.js';
 import { Game } from './core/game.js';
 import { tierFor, nextTier, verificationCode } from './core/prizes.js';
 import { localDate } from './core/leaderboard.js';
@@ -65,6 +65,7 @@ const app = {
   prize: null,       // the prize won this round, if any
   savedEntry: null,  // the leaderboard entry just saved, to highlight it
   moonTaps: [],
+  attract: null,     // the harmless game drifting behind the title screen
 };
 
 /** The game rules for one round, built from config.js and staff settings. */
@@ -76,9 +77,26 @@ function buildRules() {
     enemies: ENEMIES,
     bomb: BOMB,
     goldenPanther: GOLDEN_PANTHER,
+    frostOrb: FROST_ORB,
+    frenzy: FRENZY,
     lives: MODES.classic.lives,
     roundSeconds: getSettings().roundSeconds,
   };
+}
+
+/** Slower, steadier throws for the title screen. */
+function buildAttractRules() {
+  const rules = buildRules();
+  rules.spawn = {
+    ...SPAWN,
+    firstThrowDelay: 0.3,
+    startInterval: ATTRACT.startInterval,
+    minInterval: ATTRACT.startInterval,
+    intervalShrink: 0,
+    maxPerThrow: ATTRACT.maxPerThrow,
+    maxPerThrowLate: ATTRACT.maxPerThrow,
+  };
+  return rules;
 }
 
 async function loadFonts() {
@@ -127,6 +145,11 @@ function update(dt) {
     if (app.screen === 'playing' && hud.update(app.game)) sounds.tick();
   }
 
+  if (app.attract) {
+    const events = app.attract.update(dt, app.screen === 'title' ? segments : [], viewport.bounds);
+    reactToEvents(events, { ...app, game: app.attract, lastSlice: app.lastSlice });
+  }
+
   if (app.resultsTimer !== null) {
     app.resultsTimer -= dt;
     if (app.resultsTimer <= 0) {
@@ -137,13 +160,38 @@ function update(dt) {
 
   if (app.screen !== 'paused') effects.update(dt, WORLD.gravity, viewport.bounds);
   checkIdle();
+  watchFrameRate(dt);
   app.frameDt = dt;
+}
+
+// If the device can't keep up (an old tablet or Chromebook), switch to lower
+// quality once: fewer pixels and fewer particles. Smooth beats sharp.
+const SLOW_FRAME = 1 / 40;
+const SLOW_SECONDS_BEFORE_DOWNGRADE = 3;
+let slowFor = 0;
+let averageDt = 1 / 60;
+
+function watchFrameRate(dt) {
+  if (app.lowQuality || dt === 0) return;
+  averageDt = averageDt * 0.95 + dt * 0.05;
+  slowFor = averageDt > SLOW_FRAME ? slowFor + dt : 0;
+  if (slowFor > SLOW_SECONDS_BEFORE_DOWNGRADE) setLowQuality();
+}
+
+function setLowQuality() {
+  app.lowQuality = true;
+  app.viewport.setMaxPixelRatio(1);
+  app.effects.setLowQuality();
+  console.info('[Panther Slash] Slow device detected: switched to low quality.');
 }
 
 function draw() {
   const { input, renderer, effects } = app;
   const trails = [...input.trails.values()].map((t) => ({ points: t.points, now: input.time }));
-  renderer.draw({ dt: app.frameDt ?? 0, entities: app.game?.entities ?? [], effects, trails });
+  const game = app.game ?? app.attract;
+  const inRound = app.screen === 'playing' || app.screen === 'paused';
+  const mood = { frost: inRound && app.game.slowTimeLeft > 0, frenzy: inRound && app.game.inFrenzy };
+  renderer.draw({ dt: app.frameDt ?? 0, entities: game?.entities ?? [], effects, trails, mood });
 }
 
 // --- Title and rounds ----------------------------------------------------------------
@@ -162,6 +210,7 @@ function showTitle() {
   app.resultsTimer = null;
   app.effects.clear();
   app.hud.hide();
+  app.attract = new Game({ mode: 'attract', rules: buildAttractRules() });
 
   const settings = getSettings();
   setText('#challenge-sub', `${settings.roundSeconds} seconds · win prizes!`);
@@ -182,6 +231,7 @@ function startRound(mode) {
   app.game = new Game({ mode, rules: buildRules() });
   app.prize = null;
   app.savedEntry = null;
+  app.attract = null;
   // Every Challenge round gets a number, so each prize screen is unique.
   app.round = mode === 'challenge' ? { number: nextRoundNumber(), station: getSettings().station, date: localDate() } : null;
   app.effects.clear();
@@ -386,10 +436,7 @@ function setupControls() {
   // The first tap anywhere unlocks sound on phones.
   window.addEventListener('pointerdown', unlockAudio, { capture: true });
 
-  document.querySelector('#pause-button').addEventListener('pointerdown', (e) => {
-    e.preventDefault();
-    pause();
-  });
+  document.querySelector('#pause-button').addEventListener('click', pause);
 
   window.addEventListener('keydown', (e) => {
     // Enter saves initials, unless a button has focus (then Enter presses that button).
@@ -430,4 +477,17 @@ function setupControls() {
   });
 }
 
+/**
+ * Turn on the offline cache (sw.js). It's skipped on localhost so students
+ * always see their latest changes when they refresh; add ?sw to the address
+ * to test it locally anyway.
+ */
+function registerOfflineCache() {
+  if (!('serviceWorker' in navigator)) return;
+  const isLocal = ['localhost', '127.0.0.1', ''].includes(location.hostname);
+  if (isLocal && !new URLSearchParams(location.search).has('sw')) return;
+  navigator.serviceWorker.register('sw.js').catch((error) => console.warn('[Panther Slash] Offline cache unavailable:', error));
+}
+
 start();
+registerOfflineCache();

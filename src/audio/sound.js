@@ -108,6 +108,18 @@ export const sounds = {
       tone({ duration: 0.18, volume: 0.18, type: 'triangle', from: notes[i], delay: i * 0.06 });
     }
   },
+  frost() {
+    if (!ready()) return;
+    // Sparkly falling chimes.
+    [2093, 1760, 1568, 1319, 1175].forEach((f, i) => tone({ duration: 0.25, volume: 0.12, type: 'sine', from: f, delay: i * 0.05 }));
+    noise({ duration: 0.4, volume: 0.15, filter: 'highpass', from: 8000, to: 3000 });
+  },
+  frenzy() {
+    if (!ready()) return;
+    // Growl, then a fast rising run.
+    tone({ duration: 0.5, volume: 0.35, type: 'sawtooth', from: 110, to: 55 });
+    [392, 523, 659, 784, 1047, 1319].forEach((f, i) => tone({ duration: 0.16, volume: 0.18, type: 'square', from: f, delay: 0.2 + i * 0.06 }));
+  },
   bomb() {
     if (!ready()) return;
     noise({ duration: 1.0, volume: 0.9, filter: 'lowpass', from: 2000, to: 60 });

@@ -4,6 +4,7 @@
 import { THEME, EFFECTS } from '../config.js';
 import { Background } from './background.js';
 import { drawSprite } from './draw.js';
+import { prefersReducedMotion } from './effects.js';
 
 export class Renderer {
   constructor(canvas, viewport, sprites) {
@@ -21,7 +22,11 @@ export class Renderer {
     return this.sprites.get(entity.type.art);
   }
 
-  draw({ dt, entities, effects, trails }) {
+  /**
+   * @param {object} frame
+   * @param {{frost: boolean, frenzy: boolean}} [frame.mood]  screen-wide tints
+   */
+  draw({ dt, entities, effects, trails, mood = {} }) {
     const { ctx, viewport } = this;
     this.time += dt;
 
@@ -39,7 +44,32 @@ export class Renderer {
     effects.drawTexts(ctx);
 
     viewport.applyWorldTransform(ctx);
+    this.drawMood(mood);
     effects.drawFlash(ctx, viewport.worldWidth, viewport.worldHeight);
+  }
+
+  /** Frost: icy edges. Frenzy: a pulsing gold glow around the edges. */
+  drawMood({ frost, frenzy }) {
+    const { ctx, viewport } = this;
+    const W = viewport.worldWidth;
+    const H = viewport.worldHeight;
+    if (frost) {
+      const ice = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.3, W / 2, H / 2, Math.max(W, H) * 0.75);
+      ice.addColorStop(0, 'rgba(120, 210, 255, 0)');
+      ice.addColorStop(1, 'rgba(120, 210, 255, 0.5)');
+      ctx.fillStyle = ice;
+      ctx.fillRect(0, 0, W, H);
+    }
+    // Frost wins while it lasts; mixing blue and gold edges just looks muddy.
+    if (frenzy && !frost) {
+      // Pulsing is skipped for players who asked their device for less motion.
+      const pulse = prefersReducedMotion() ? 0.5 : 0.5 + 0.5 * Math.sin(this.time * 8);
+      const glow = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.35, W / 2, H / 2, Math.max(W, H) * 0.75);
+      glow.addColorStop(0, 'rgba(246, 188, 27, 0)');
+      glow.addColorStop(1, `rgba(246, 188, 27, ${0.25 + pulse * 0.2})`);
+      ctx.fillStyle = glow;
+      ctx.fillRect(0, 0, W, H);
+    }
   }
 
   drawEntity(e) {

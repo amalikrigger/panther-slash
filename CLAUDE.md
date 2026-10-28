@@ -40,6 +40,9 @@ codebase**.
   `pointer-events: none` so swipes reach the canvas.
 - Enemy art is one whole image per enemy (drawn in `src/render/art.js` or a
   student PNG); halves are cut at runtime along the swipe line.
+- `sw.js` is the offline cache (stale-while-revalidate). It's skipped on
+  localhost (add `?sw` to test it). `tests/offline.test.mjs` fails if a game
+  file is missing from its `PRECACHE` list.
 
 ## Identity
 

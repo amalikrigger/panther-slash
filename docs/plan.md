@@ -85,5 +85,11 @@ thinkinbits.site, school logo once permission is confirmed.
   booth-flow script passes at 390×844, 844×390 and 1280×800 touch; prize
   screen fits without scrolling down to 375×667; `node --test` 33/33).
   Committed on `boo-bash-rebuild` (not pushed); legacy Fruit Ninja files deleted.
-- [ ] Phase 3: next (juice, title attract mode, service worker for offline,
-  accessibility pass, low-end tuning)
+- [x] Phase 3: built and verified Oct 27 (uncommitted, awaiting approval). Added
+  an offline service worker (verified with a reload while offline), attract mode
+  on the title, Panther Frenzy, the Frost Orb power-up, adaptive low-quality
+  mode for slow devices, buttons that fire on click so swipes can't start
+  rounds, a frost/frenzy screen tint, and rounder panther ears.
+  `node --test` 39/39; booth flow 25/25 on phone and desktop.
+- [ ] Next: real-device rehearsal on the booth hardware, calibrate prize
+  thresholds with students, then deploy (needs approval).

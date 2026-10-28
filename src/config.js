@@ -71,6 +71,18 @@ export const GOLDEN_PANTHER = {
   chancePerThrow: 0.04, // 4% of throws include one
 };
 
+// Power-up: the Frost Orb. Slicing it slows everything down for a few
+// seconds (the Challenge timer keeps running at normal speed).
+export const FROST_ORB = {
+  art: 'drawn:frost',
+  radius: 42,
+  points: 10,
+  juice: '#9fe8ff',
+  chancePerThrow: 0.05, // 5% of throws include one
+  seconds: 4,           // how long the slow-down lasts
+  slowFactor: 0.45,     // 0.45 = things move at 45% speed
+};
+
 // The bomb. Slicing it is bad! It's drawn as a spiky black skull so you can
 // tell it apart by shape, not just color.
 export const BOMB = {
@@ -97,6 +109,21 @@ export const SPAWN = {
   apexMin: 0.15,         // highest point of the throw, as a fraction of screen height from the top
   apexMax: 0.5,
   spinMax: 4,            // max spin, radians per second
+};
+
+// PANTHER FRENZY: the last few seconds of a Boo Bash Challenge round go wild,
+// with more throws and no bombs, so every round ends with a bang.
+export const FRENZY = {
+  lastSeconds: 10,      // starts when this many seconds are left
+  intervalFactor: 0.5,  // 0.5 = throws come twice as often
+  bombs: false,         // no bombs during the frenzy
+};
+
+// Attract mode: slow, harmless enemies drift across the title screen so
+// people walking past see the game and can try a swipe.
+export const ATTRACT = {
+  startInterval: 1.5,   // seconds between throws
+  maxPerThrow: 2,
 };
 
 // -----------------------------------------------------------------------------
