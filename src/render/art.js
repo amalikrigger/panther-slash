@@ -492,6 +492,9 @@ const DRAWINGS = {
   bomb: drawBomb,
 };
 
+/** Names you can use as "drawn:<name>" in config.js. */
+export const DRAWN_NAMES = Object.keys(DRAWINGS);
+
 /** Draw a named enemy into a new canvas. Returns null for unknown names. */
 export function makeDrawnSprite(name) {
   const draw = DRAWINGS[name];

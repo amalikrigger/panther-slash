@@ -11,6 +11,21 @@ import { makeDrawnSprite } from './art.js';
 
 const FALLBACK_ART = 'drawn:pumpkin';
 
+/**
+ * Every `art` value anywhere in config.js (enemies, bomb, power-ups...).
+ * Scanning the whole config means a new power-up's picture can't be
+ * forgotten; a missing picture used to freeze the game when it appeared.
+ */
+export function artKeysFromConfig(config) {
+  const keys = new Set();
+  for (const value of Object.values(config)) {
+    for (const item of Array.isArray(value) ? value : [value]) {
+      if (item && typeof item.art === 'string') keys.add(item.art);
+    }
+  }
+  return [...keys];
+}
+
 function loadImage(src) {
   return new Promise((resolve, reject) => {
     const image = new Image();

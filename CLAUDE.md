@@ -40,9 +40,13 @@ codebase**.
   `pointer-events: none` so swipes reach the canvas.
 - Enemy art is one whole image per enemy (drawn in `src/render/art.js` or a
   student PNG); halves are cut at runtime along the swipe line.
-- `sw.js` is the offline cache (stale-while-revalidate). It's skipped on
-  localhost (add `?sw` to test it). `tests/offline.test.mjs` fails if a game
-  file is missing from its `PRECACHE` list.
+- `sw.js` is the offline cache: cache-first from one versioned set, so
+  updates arrive atomically. `CACHE_VERSION` is a fingerprint of the files;
+  `tests/offline.test.mjs` fails (printing the new value) if it's stale or if
+  a game file is missing from `PRECACHE`. It's skipped on localhost (add `?sw`
+  to test it).
+- `src/engine/loop.js` keeps running even if a frame throws. Treat any
+  "[Panther Slash] Frame error" in the console as a real bug.
 
 ## Identity
 

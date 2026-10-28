@@ -19,7 +19,15 @@ export class Renderer {
   }
 
   spriteFor(entity) {
-    return this.sprites.get(entity.type.art);
+    const sprite = this.sprites.get(entity.type.art);
+    if (sprite) return sprite;
+    // Should never happen (sprites.js loads every art in config.js), but a
+    // missing picture must never crash a round at the booth.
+    if (!this.warned) {
+      console.warn(`[Panther Slash] No picture loaded for "${entity.type.art}". Using a pumpkin.`);
+      this.warned = true;
+    }
+    return this.sprites.values().next().value;
   }
 
   /**

@@ -10,10 +10,27 @@
 const PREFIX = 'pantherSlash.v1.';
 const memory = new Map();
 
+/** Same kind of value as the fallback? (list, plain object, number, text, true/false) */
+function sameShape(value, fallback) {
+  if (Array.isArray(fallback)) return Array.isArray(value);
+  if (fallback !== null && typeof fallback === 'object') return value !== null && typeof value === 'object' && !Array.isArray(value);
+  if (typeof fallback === 'number') return Number.isFinite(value);
+  return typeof value === typeof fallback;
+}
+
+/**
+ * Read a saved value. If it's missing, unreadable, or the wrong kind (for
+ * example an old version saved it differently, or someone edited it by
+ * hand), return `fallback` instead, so bad data can't break the game.
+ */
 export function load(key, fallback) {
   try {
     const raw = localStorage.getItem(PREFIX + key);
-    if (raw !== null) return JSON.parse(raw);
+    if (raw !== null) {
+      const value = JSON.parse(raw);
+      if (sameShape(value, fallback)) return value;
+      console.warn(`[Panther Slash] Ignoring saved "${key}": it isn't in the expected format.`);
+    }
   } catch {
     // Unreadable or blocked storage: fall through to memory.
   }

@@ -431,6 +431,9 @@ button {
 }
 .button-tertiary .button-title { font-size: 20px; }
 
+.button:disabled { opacity: 0.45; cursor: default; }
+.board-prize { width: 100%; margin-bottom: 12px; }
+
 .button-danger {
   min-height: 52px;
   width: 100%;
@@ -448,7 +451,8 @@ button {
 /* The staff and PIN screens are tall forms; the corner buttons would cover
    their bottom buttons. */
 body[data-screen='staff'] .corner-buttons,
-body[data-screen='pin'] .corner-buttons { display: none; }
+body[data-screen='pin'] .corner-buttons,
+body[data-screen='game'] .corner-buttons { display: none; }
 
 .next-tier {
   margin: -4px 0 14px;
@@ -787,6 +791,16 @@ body[data-screen='pin'] .corner-buttons { display: none; }
   gap: 10px;
 }
 .staff-form input[type='checkbox'] { width: 24px; height: 24px; accent-color: var(--gold); }
+.staff-stats {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 14px;
+  margin: 4px 0;
+  font-variant-numeric: tabular-nums;
+}
+.staff-stats dt { opacity: 0.8; }
+.staff-stats dd { margin: 0; font-weight: 700; }
+.staff-hint { margin: 8px 0 0; font-size: 15px; opacity: 0.85; }
 .verify-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .verify-result { min-height: 1.4em; font-weight: 700; font-size: 18px; }
 .prize-log {

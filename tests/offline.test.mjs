@@ -1,16 +1,18 @@
-// Checks that the offline cache list in sw.js includes every game file.
-// If this fails after you added a file, add its path to PRECACHE in sw.js
-// and bump CACHE_VERSION.
+// Checks the offline cache in sw.js: every game file is in its PRECACHE list,
+// and CACHE_VERSION matches the files (so players actually get updates).
+// The failure message tells you exactly what to change.
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { join, relative } from 'node:path';
 
 const root = new URL('..', import.meta.url).pathname;
 
 function filesIn(dir) {
-  return readdirSync(join(root, dir)).flatMap((name) => {
+  // Skip hidden files like .DS_Store (made by macOS Finder, never served).
+  return readdirSync(join(root, dir)).filter((name) => !name.startsWith('.')).flatMap((name) => {
     const path = join(dir, name);
     return statSync(join(root, path)).isDirectory() ? filesIn(path) : [path];
   });
@@ -33,4 +35,18 @@ test('every path in the offline cache list exists and is relative', () => {
     if (path === './') continue;
     assert.doesNotThrow(() => statSync(join(root, path)), `${path} is in PRECACHE but doesn't exist`);
   }
+});
+
+test('CACHE_VERSION matches the current game files, so players get updates', () => {
+  // The version is a fingerprint of every cached file. If any file changes,
+  // the fingerprint changes, and the browser downloads the new set.
+  const hash = createHash('sha256');
+  for (const path of precache) {
+    if (path === './') continue;
+    hash.update(path);
+    hash.update(readFileSync(join(root, path)));
+  }
+  const expected = `panther-slash-${hash.digest('hex').slice(0, 8)}`;
+  const actual = sw.match(/const CACHE_VERSION = '([^']+)'/)[1];
+  assert.equal(actual, expected, `Game files changed: in sw.js set CACHE_VERSION = '${expected}'`);
 });

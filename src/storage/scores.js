@@ -2,6 +2,7 @@
 //
 // Leaderboard entry: { initials, score, mode, date, time }
 // Prize log entry:   { station, round, score, tierId, code, date, time, claimedAt }
+// Round log entry:   { mode, score, tierId, date }  (every round, for staff stats)
 // No names or personal details, ever.
 
 import { LEADERBOARD } from '../config.js';
@@ -11,9 +12,15 @@ import { load, save, remove } from './store.js';
 // How many all-time scores to keep per mode (today's are always kept).
 const KEEP_PER_MODE = 50;
 const PRIZE_LOG_SIZE = 200;
+const ROUND_LOG_SIZE = 2000;
 
-let entries = load('scores', []);
-let prizeLog = load('prizes', []);
+// Drop any entry that's missing what we need, rather than crashing on it.
+const isEntry = (e) => e && typeof e.initials === 'string' && Number.isFinite(e.score) && typeof e.mode === 'string' && typeof e.date === 'string';
+const isPrize = (p) => p && typeof p.station === 'string' && Number.isFinite(p.round) && Number.isFinite(p.score);
+
+let entries = load('scores', []).filter(isEntry);
+let prizeLog = load('prizes', []).filter(isPrize);
+let roundLog = load('rounds', []).filter((r) => r && typeof r.mode === 'string' && Number.isFinite(r.score));
 
 // --- Leaderboard -----------------------------------------------------------------
 
@@ -71,6 +78,17 @@ export function markClaimed(station, round) {
 
 export function recentPrizes(count = 20) {
   return prizeLog.slice(0, count);
+}
+
+// --- Round log (for staff stats) ---------------------------------------------------
+
+export function logRound({ mode, score, tierId }) {
+  roundLog = [...roundLog, { mode, score, tierId: tierId ?? null, date: localDate() }].slice(-ROUND_LOG_SIZE);
+  save('rounds', roundLog);
+}
+
+export function roundsOn(date) {
+  return roundLog.filter((r) => r.date === date);
 }
 
 export function resetPrizeLog() {

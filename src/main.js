@@ -21,6 +21,7 @@
 //
 // Buttons in index.html have data-action="..." and are handled in onButton().
 
+import * as CONFIG from './config.js';
 import { WORLD, SPAWN, SCORING, ENEMIES, BOMB, GOLDEN_PANTHER, FROST_ORB, FRENZY, ATTRACT, MODES, EFFECTS, STAFF } from './config.js';
 import { Game } from './core/game.js';
 import { tierFor, nextTier, verificationCode } from './core/prizes.js';
@@ -28,14 +29,14 @@ import { localDate } from './core/leaderboard.js';
 import { Viewport } from './engine/viewport.js';
 import { startLoop } from './engine/loop.js';
 import { PointerInput } from './input/pointer.js';
-import { loadSprites } from './render/sprites.js';
+import { loadSprites, artKeysFromConfig } from './render/sprites.js';
 import { Renderer } from './render/renderer.js';
 import { Effects } from './render/effects.js';
 import { reactToEvents } from './reactions.js';
 import { sounds, unlock as unlockAudio, setMuted, isMuted } from './audio/sound.js';
 import { load, save } from './storage/store.js';
 import { getSettings, prizeTiers } from './storage/settings.js';
-import { addScore, scoreQualifies, boardFor, nextRoundNumber, logPrize, markClaimed } from './storage/scores.js';
+import { addScore, scoreQualifies, boardFor, nextRoundNumber, logPrize, markClaimed, logRound } from './storage/scores.js';
 import { showScreen, onAction, setText, setHidden, setStats } from './ui/screens.js';
 import { Hud } from './ui/hud.js';
 import { setupFullscreen } from './ui/fullscreen.js';
@@ -59,7 +60,7 @@ const app = {
   game: null,
   lastMode: 'challenge',
   resultsTimer: null,
-  bestScores: load('best', { classic: 0, challenge: 0 }),
+  bestScores: { classic: 0, challenge: 0, ...load('best', {}) },
   lastSlice: { x: 0, y: 0 },
   round: null,       // { number, station, date } for the current Challenge round
   prize: null,       // the prize won this round, if any
@@ -111,8 +112,7 @@ async function start() {
   showScreen('loading');
   const canvas = document.querySelector('#game');
   const viewport = new Viewport(canvas);
-  const artKeys = [...ENEMIES.map((e) => e.art), BOMB.art, GOLDEN_PANTHER.art];
-  const [sprites] = await Promise.all([loadSprites(artKeys), loadFonts()]);
+  const [sprites] = await Promise.all([loadSprites(artKeysFromConfig(CONFIG)), loadFonts()]);
 
   const input = new PointerInput(canvas, viewport);
   const renderer = new Renderer(canvas, viewport, sprites);
@@ -207,6 +207,7 @@ function goTo(screen) {
 function showTitle() {
   app.game = null;
   app.savedEntry = null;
+  app.prize = null;
   app.resultsTimer = null;
   app.effects.clear();
   app.hud.hide();
@@ -277,16 +278,26 @@ function finishRound() {
     app.prize = { tier, score: game.score, station, round: number, code, date, claimedAt: null };
     logPrize({ station, round: number, score: game.score, tierId: tier.id, code, date, time: Date.now(), claimedAt: null });
   }
+  logRound({ mode: game.mode, score: game.score, tierId: tier?.id });
 }
 
 function afterRound() {
   if (app.prize) {
-    showPrize(app.prize, () => markClaimed(app.prize.station, app.prize.round));
-    sounds.fanfare();
-    goTo('prize');
+    openPrize();
   } else {
     showResults();
   }
+}
+
+/** Show (or show again) this round's prize screen. */
+function openPrize() {
+  showPrize(app.prize, () => {
+    const logged = markClaimed(app.prize.station, app.prize.round);
+    app.prize.claimedAt = logged?.claimedAt ?? Date.now(); // the kiosk timer reads this
+    return app.prize;
+  });
+  if (!app.prize.claimedAt) sounds.fanfare();
+  goTo('prize');
 }
 
 function showResults() {
@@ -316,6 +327,7 @@ function showResults() {
   const canSave = !app.savedEntry && scoreQualifies(game.mode, game.score);
   setHidden('#results-save', !canSave);
   setHidden('#results-play-again', canSave);
+  setHidden('#results-show-prize', !app.prize);
   goTo('results');
 }
 
@@ -336,6 +348,8 @@ function saveInitials() {
 function showLeaderboard(options = {}) {
   renderBoard({ ...options, highlight: app.savedEntry, tiers: prizeTiers(), allowClassic: getSettings().allowClassic });
   setText('#board-play .button-title', app.game ? 'Play again' : 'Play');
+  // From the title screen there's no prize (showTitle clears it).
+  setHidden('#board-show-prize', !app.prize);
   goTo('leaderboard');
 }
 
@@ -393,6 +407,8 @@ function onButton(action, button) {
       return scoreQualifies(app.game.mode, app.game.score) && !app.savedEntry ? openInitials() : showResults();
     case 'enter-initials':
       return openInitials();
+    case 'show-prize':
+      return app.prize && openPrize();
     case 'initial-up':
       return stepLetter(Number(button.dataset.slot), 1);
     case 'initial-down':

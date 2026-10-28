@@ -76,7 +76,7 @@
       </div>
     </section>
 
-    <section class="screen" id="screen-pause" aria-label="Paused">
+    <section class="screen" id="screen-paused" aria-label="Paused">
       <div class="panel">
         <h2 class="screen-title">Paused</h2>
         <div class="menu">
@@ -103,6 +103,7 @@
             <span class="button-sub">You made the leaderboard</span>
           </button>
           <button class="button button-primary" data-action="play-again" id="results-play-again"><span class="button-title">Play again</span></button>
+          <button class="button button-tertiary" data-action="show-prize" id="results-show-prize" hidden><span class="button-title">🏆 Show my prize</span></button>
           <button class="button button-secondary" data-action="menu"><span class="button-title">Menu</span></button>
         </div>
       </div>
@@ -130,12 +131,12 @@
           <div class="prize-clock" id="prize-clock" aria-live="off"></div>
           <div class="prize-claim" id="prize-claim">
             <span class="prize-claim-fill" id="prize-claim-fill"></span>
-            <span class="prize-claim-text" id="prize-claim-text">Staff: hold here to claim</span>
+            <span class="prize-claim-text" id="prize-claim-text">Prize desk use only</span>
           </div>
         </div>
         <p class="prize-instructions">Show this screen at the prize table!</p>
         <div class="menu">
-          <button class="button button-primary" data-action="prize-continue"><span class="button-title">Continue</span></button>
+          <button class="button button-primary" data-action="prize-continue" id="prize-continue"><span class="button-title">Continue</span></button>
         </div>
         </div>
       </div>
@@ -184,6 +185,7 @@
         </div>
         <ol class="board" id="board"></ol>
         <p class="board-empty" id="board-empty" hidden>No scores yet. Be the first!</p>
+        <button class="button button-tertiary board-prize" data-action="show-prize" id="board-show-prize" hidden><span class="button-title">🏆 Show my prize</span></button>
         <div class="menu menu-row">
           <button class="button button-primary" data-action="play-again" id="board-play"><span class="button-title">Play</span></button>
           <button class="button button-secondary" data-action="menu"><span class="button-title">Menu</span></button>
@@ -241,6 +243,11 @@
               <input name="roundSeconds" type="number" min="15" max="300" step="5" inputmode="numeric">
             </label>
             <div id="staff-tiers"></div>
+          </fieldset>
+          <fieldset>
+            <legend>Today on this device</legend>
+            <dl class="staff-stats" id="staff-stats"></dl>
+            <p class="staff-hint" id="staff-stats-hint"></p>
           </fieldset>
           <fieldset>
             <legend>Check a prize code</legend>

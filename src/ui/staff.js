@@ -6,7 +6,8 @@
 
 import { PRIZE_TIERS, STAFF } from '../config.js';
 import { getSettings, updateSettings, prizeTiers } from '../storage/settings.js';
-import { recentPrizes, findPrize, resetScores } from '../storage/scores.js';
+import { recentPrizes, findPrize, resetScores, roundsOn } from '../storage/scores.js';
+import { summarizeRounds } from '../core/stats.js';
 import { verificationCode, tierFor, roundLabel } from '../core/prizes.js';
 import { localDate } from '../core/leaderboard.js';
 import { setText } from './screens.js';
@@ -92,7 +93,7 @@ function fillTierInputs() {
       const input = document.createElement('input');
       input.type = 'number';
       input.inputMode = 'numeric';
-      input.min = '0';
+      input.min = '1';
       input.step = '50';
       input.name = `tier-${tier.id}`;
       input.value = scores[tier.id];
@@ -128,6 +129,34 @@ function renderPrizeLog() {
   );
 }
 
+function renderStats() {
+  const stats = summarizeRounds(roundsOn(localDate()));
+  const list = document.querySelector('#staff-stats');
+  const tierNames = PRIZE_TIERS.map((t) => `${t.name.split(' ')[0]} ${stats.prizes[t.id] ?? 0}`).join(' · ');
+  const rows = [
+    ['Challenge rounds', stats.challengeRounds],
+    ['Classic rounds', stats.classicRounds],
+    ['Prizes won', tierNames],
+    ['Scores', stats.median === null ? '—' : `low ${stats.low} · middle ${stats.median} · high ${stats.high} · best ${stats.best}`],
+  ];
+  list.replaceChildren(
+    ...rows.flatMap(([label, value]) => {
+      const dt = document.createElement('dt');
+      const dd = document.createElement('dd');
+      dt.textContent = label;
+      dd.textContent = value;
+      return [dt, dd];
+    }),
+  );
+  // "low" and "high" are the scores a quarter of players fall below / above.
+  setText(
+    '#staff-stats-hint',
+    stats.challengeRounds >= 5
+      ? 'Tip: Bronze near "low" lets most players win something; Silver near "middle"; Gold near "high".'
+      : 'Play at least 5 Challenge rounds to get useful score numbers.',
+  );
+}
+
 export function showStaff() {
   const settings = getSettings();
   fillStationOptions();
@@ -147,9 +176,12 @@ export function showStaff() {
   resetArmedUntil = 0;
   setText('#staff-reset-scores .button-title', 'Reset leaderboard');
   renderPrizeLog();
+  renderStats();
 }
 
+/** A number from a form field, kept between min and max. A blank or invalid field keeps `fallback`. */
 const clampNumber = (value, min, max, fallback) => {
+  if (String(value).trim() === '') return fallback; // Number('') is 0, which would wipe the setting
   const n = Math.round(Number(value));
   return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
 };
@@ -162,7 +194,8 @@ export function saveStaff() {
 
   const tierScores = {};
   for (const tier of PRIZE_TIERS) {
-    tierScores[tier.id] = clampNumber(form[`tier-${tier.id}`].value, 0, 100000, settings.tierScores[tier.id]);
+    // At least 1, so a score of 0 can never win a prize.
+    tierScores[tier.id] = clampNumber(form[`tier-${tier.id}`].value, 1, 100000, settings.tierScores[tier.id]);
   }
   // Tiers must go up in order, or "Gold" could be easier than "Silver".
   const ordered = PRIZE_TIERS.map((t) => tierScores[t.id]);

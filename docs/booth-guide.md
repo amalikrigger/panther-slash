@@ -7,8 +7,8 @@ it at the table.
 
 1. **Start the game.** On a laptop, run the local server from the README and
    open `http://localhost:8000`. That needs no Wi-Fi at all. If a device
-   uses the website instead, load it before the event and **keep the tab
-   open**: until the offline update is added, reloading needs internet.
+   uses the website instead, open it once on good Wi-Fi before the event.
+   After that it works offline, even if you reload.
 2. **Open staff mode.** On the title screen, tap the **moon 5 times quickly**,
    then enter the PIN (default `1031`).
 3. Set these, then press **Save**:
@@ -37,9 +37,15 @@ it at the table.
 - **To hand out a prize:**
   1. Check that the screen is live, with the clock ticking. A screenshot
      doesn't tick.
-  2. **Hold the "Staff: hold here to claim" box** for about a second until it
-     turns red and says **CLAIMED**.
+  2. **Press and hold the "Prize desk use only" box** for about 3 seconds
+     until it turns red and says **CLAIMED**. (The label doesn't say "hold" on
+     purpose, so kids don't claim their own prize by accident.)
   3. Give the prize. A screen that already says CLAIMED gets no second prize.
+     If it says CLAIMED at a time just seconds after the round ended, a
+     curious kid may have pressed it. Check the prize log in staff mode and
+     use your judgment.
+- **Prize screen gone?** If the player tapped Continue, the results or
+  leaderboard screen has a **🏆 Show my prize** button until the next round.
 - **Checking a prize from another device** (for example, the player walked
   over and the screen changed): open staff mode on any booth device, go to
   **Check a prize code**, and enter the round and score. If the code shown
@@ -54,7 +60,7 @@ it at the table.
 |---|---|
 | No sound | Tap the screen once (phones need a tap first), and check the speaker button isn't muted. |
 | Screen not full | Tap the fullscreen button. On an iPhone or iPad: Share → Add to Home Screen. |
-| Frozen or weird | Reload the page (on the website this needs internet for now). Scores and settings are kept. |
+| Frozen or weird | Reload the page. Scores and settings are kept. |
 | Forgot the PIN | Clearing the browser's site data resets everything (scores too), and the PIN goes back to `1031`. |
 | Reset the leaderboard | Staff mode → Reset leaderboard → tap it twice. |
 

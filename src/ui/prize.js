@@ -5,15 +5,19 @@ import { setText } from './screens.js';
 import { roundLabel } from '../core/prizes.js';
 import { makeDrawnSprite } from '../render/art.js';
 
-// How long staff must hold the claim box. Long enough that a quick tap
-// can't claim by accident.
-const HOLD_SECONDS = 1.2;
+// How long staff must hold the claim box. Long enough that a tap, or a kid
+// poking at it, won't claim the prize by accident. The label doesn't say
+// "hold", so only volunteers who read the booth guide know the trick.
+const HOLD_SECONDS = 2.5;
 
 const panel = document.querySelector('#prize-panel');
 const claimBox = document.querySelector('#prize-claim');
 const claimFill = document.querySelector('#prize-claim-fill');
 
+const CONTINUE_DELAY_MS = 3000;
+
 let clockTimer = null;
+let continueTimer = null;
 let holdStart = null;
 let holdFrame = null;
 let onClaim = null;
@@ -52,6 +56,13 @@ export function showPrize(prize, claim) {
   onClaim = claim;
   setClaimed(prize.claimedAt);
 
+  // Hold off "Continue" for a moment: kids are still tapping wildly when the
+  // round ends, and one stray tap shouldn't whisk the prize away.
+  const continueButton = document.querySelector('#prize-continue');
+  continueButton.disabled = true;
+  clearTimeout(continueTimer);
+  continueTimer = setTimeout(() => (continueButton.disabled = false), CONTINUE_DELAY_MS);
+
   // The clock ticks every second, so a volunteer can tell a live screen from
   // a screenshot someone saved earlier.
   const tick = () => setText('#prize-clock', formatClock(Date.now()));
@@ -69,7 +80,7 @@ export function hidePrize() {
 function setClaimed(claimedAt) {
   claimed = !!claimedAt;
   claimBox.classList.toggle('claimed', claimed);
-  setText('#prize-claim-text', claimed ? `✓ CLAIMED ${formatTime(claimedAt)}` : 'Staff: hold here to claim');
+  setText('#prize-claim-text', claimed ? `✓ CLAIMED ${formatTime(claimedAt)}` : 'Prize desk use only');
   claimFill.style.transform = 'scaleX(0)';
 }
 

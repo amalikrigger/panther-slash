@@ -17,9 +17,16 @@ function defaults() {
   };
 }
 
-let current = { ...defaults(), ...load('settings', {}) };
+// Start from the defaults and keep only saved values of the right kind, so a
+// damaged or outdated setting falls back to its default instead of breaking.
+const saved = load('settings', {});
+let current = defaults();
+for (const [key, fallback] of Object.entries(current)) {
+  const value = saved[key];
+  if (value !== undefined && (typeof value === typeof fallback) && (typeof value !== 'number' || Number.isFinite(value))) current[key] = value;
+}
 // Make sure tiers added to config.js later still get a score.
-current.tierScores = { ...defaults().tierScores, ...current.tierScores };
+current.tierScores = { ...defaults().tierScores, ...(typeof saved.tierScores === 'object' && saved.tierScores ? saved.tierScores : {}) };
 
 export function getSettings() {
   return current;

@@ -77,7 +77,10 @@ Save the file and reload the browser.
 
 The game also works **offline**: on a real website it saves itself after the
 first visit (see `sw.js`). That's switched off on `localhost`, so your changes
-always show up when you refresh.
+always show up when you refresh. **Before publishing a change to the website,
+run `node --test`.** If a game file changed, it tells you the new
+`CACHE_VERSION` to paste into `sw.js`. Without that, players keep the old
+version.
 
 Tip: add `?debug` to the address (`http://localhost:8000/?debug`), open
 the browser console (F12), and type `pantherSlash.game` while playing to look

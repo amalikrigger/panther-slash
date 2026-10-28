@@ -91,5 +91,13 @@ thinkinbits.site, school logo once permission is confirmed.
   mode for slow devices, buttons that fire on click so swipes can't start
   rounds, a frost/frenzy screen tint, and rounder panther ears.
   `node --test` 39/39; booth flow 25/25 on phone and desktop.
-- [ ] Next: real-device rehearsal on the booth hardware, calibrate prize
-  thresholds with students, then deploy (needs approval).
+- [x] Event hardening, Oct 28: an independent review found 2 blockers (Frost
+  Orb sprite never loaded, which froze the game; pause screen id mismatch,
+  which soft-locked touch devices) plus 6 more issues. All fixed, with tests.
+  Also added staff "Today" stats (rounds, prizes, score spread) and a cache-first
+  service worker with a fingerprinted version. `node --test` 47/47; booth flow
+  38/38 on three viewports; Frost Orb soak test clean; offline reload verified.
+  Rehearsal checklist and deployment proposal in `docs/`.
+- [ ] Next (needs Amali): real-device rehearsal (`docs/rehearsal-checklist.md`),
+  calibrate prize thresholds with students, push the branch, and decide on
+  deployment (`docs/deployment-proposal.md`).
